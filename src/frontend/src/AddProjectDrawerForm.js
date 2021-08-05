@@ -1,25 +1,25 @@
 import {Drawer, Input, Col, Select, Form, Row, Button, Spin} from 'antd';
-import {addNewStudent} from "./client";
+import {addNewProject} from "./client";
 import {LoadingOutlined} from "@ant-design/icons";
 import {useState} from 'react';
 import {successNotification, errorNotification} from "./Notification";
 const {Option} = Select;
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-function StudentDrawerForm({showDrawer, setShowDrawer, fetchStudents}) {
+function ProjectDrawerForm({showDrawer, setShowDrawer, fetchProjects}) {
     const onCLose = () => setShowDrawer(false);
     const [submitting, setSubmitting] = useState(false);
-    const onFinish = student => {
+    const onFinish = project => {
         setSubmitting(true)
-        console.log(JSON.stringify(student, null, 2))
-        addNewStudent(student)
+        console.log(JSON.stringify(project, null, 2))
+        addNewProject(project)
             .then(() => {
-                console.log("student added")
+                console.log("project added")
                 onCLose();
                 successNotification(
-                    "Student successfully added",
-                    `${student.name} was added to the system`
+                    "Project successfully added",
+                    `${project.name} was added to the system`
                 )
-                fetchStudents();
+                fetchProjects();
             }).catch(err => {
             console.log(err);
             err.response.json().then(res => {
@@ -38,7 +38,7 @@ function StudentDrawerForm({showDrawer, setShowDrawer, fetchStudents}) {
         alert(JSON.stringify(errorInfo, null, 2));
     };
     return <Drawer
-        title="Create new student"
+        title="Create new project"
         width={720}
         onClose={onCLose}
         visible={showDrawer}
@@ -64,33 +64,29 @@ function StudentDrawerForm({showDrawer, setShowDrawer, fetchStudents}) {
                     <Form.Item
                         name="name"
                         label="Name"
-                        rules={[{required: true, message: 'Please enter student name'}]}
+                        rules={[{required: true, message: 'Please enter project name'}]}
                     >
-                        <Input placeholder="Please enter student name"/>
+                        <Input placeholder="Please enter project name"/>
                     </Form.Item>
                 </Col>
                 <Col span={12}>
                     <Form.Item
-                        name="email"
-                        label="Email"
-                        rules={[{required: true, message: 'Please enter student email'}]}
+                        name="projectNo"
+                        label="projectNo"
+                        rules={[{required: true, message: 'Please enter project no'}]}
                     >
-                        <Input placeholder="Please enter student email"/>
+                        <Input placeholder="Please enter project no"/>
                     </Form.Item>
                 </Col>
             </Row>
             <Row gutter={16}>
                 <Col span={12}>
                     <Form.Item
-                        name="gender"
-                        label="gender"
-                        rules={[{required: true, message: 'Please select a gender'}]}
+                        name="projectCode"
+                        label="projectCode"
+                        rules={[{required: true, message: 'Please enter project code'}]}
                     >
-                        <Select placeholder="Please select a gender">
-                            <Option value="Male">MALE</Option>
-                            <Option value="Female">FEMALE</Option>
-                            <Option value="Other">OTHER</Option>
-                        </Select>
+                        <Input placeholder="Please enter project code"/>
                     </Form.Item>
                 </Col>
             </Row>
@@ -109,4 +105,4 @@ function StudentDrawerForm({showDrawer, setShowDrawer, fetchStudents}) {
         </Form>
     </Drawer>
 }
-export default StudentDrawerForm;
+export default ProjectDrawerForm;

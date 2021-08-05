@@ -1,4 +1,4 @@
-package com.example.mainproject.student;
+package com.example.mainproject.project;
 
 import lombok.*;
 
@@ -15,16 +15,16 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @Entity
 @Table
-public class Student {
+public class Project {
 
     @Id
     @SequenceGenerator(
-            name = "student_sequence",
-            sequenceName = "student_sequence",
+            name = "projectlist_sequence",
+            sequenceName = "projectlist_sequence",
             allocationSize = 1
     )
     @GeneratedValue(
-            generator = "student_sequence",
+            generator = "projectlist_sequence",
             strategy = GenerationType.SEQUENCE
     )
     private Long id;
@@ -33,18 +33,17 @@ public class Student {
     @Column(nullable = false)
     private String name;
 
-    @Email
+    @NotBlank
     @Column(nullable = false, unique = true)
-    private String email;
+    private String projectNo;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
+    @NotBlank
     @Column(nullable = false)
-    private Gender gender;
+    private String projectCode;
 
-    public Student(String name, String email, Gender gender) {
+    public Project(String name, String projectNo, String projectCode) {
         this.name = name;
-        this.email = email;
-        this.gender = gender;
+        this.projectNo = projectNo;
+        this.projectCode = projectCode;
     }
 }

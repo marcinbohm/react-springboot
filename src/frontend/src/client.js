@@ -10,22 +10,31 @@ const checkStatus = response => {
     return Promise.reject(error);
 }
 
-export const getAllStudents = () =>
-    fetch("api/v1/students")
+export const getAllProjects = () =>
+    fetch("api/v1/projectslist")
     .then(checkStatus);
 
-export const addNewStudent = student =>
-    fetch("api/v1/students", {
+export const addNewProject = project =>
+    fetch("api/v1/projectslist", {
             headers: {
                 'Content-Type': 'application/json'
             },
             method: 'POST',
-            body: JSON.stringify(student)
+            body: JSON.stringify(project)
         }
     );
 
-export const deleteStudent = studentId =>
-    fetch(`api/v1/students/${studentId}`, {
+export const deleteProject = projectId =>
+    fetch(`api/v1/projectslist/${projectId}`, {
         method: 'DELETE'
     }).then(checkStatus);
+
+export const updateProject = project =>
+    fetch("api/v1/projectslist", {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        method: 'PUT',
+        body: JSON.stringify(project)
+    })
 

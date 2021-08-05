@@ -1,5 +1,5 @@
-import {useState, useEffect} from 'react'
-import {deleteStudent, getAllStudents} from "./client";
+import React, {useState, useEffect} from 'react'
+import {deleteProject, getAllProjects} from "./client";
 import {
     Layout,
     Menu,
@@ -11,7 +11,10 @@ import {
     Badge,
     Tag,
     Avatar,
-    Radio, Popconfirm
+    Radio,
+    Popconfirm,
+    Input,
+    Space
 } from 'antd';
 import {
     DesktopOutlined,
@@ -20,17 +23,20 @@ import {
     TeamOutlined,
     UserOutlined,
     LoadingOutlined,
-    PlusOutlined
+    PlusOutlined,
+    SearchOutlined
 } from '@ant-design/icons';
-import StudentDrawerForm from "./StudentDrawerForm";
+import Highlighter from 'react-highlight-words';
+import ProjectDrawerForm from "./AddProjectDrawerForm";
+import ProjectEditDrawerForm from "./EditProjectDrawerForm";
 import './App.css';
 import {errorNotification, successNotification} from "./Notification";
 const {Header, Content, Footer, Sider} = Layout;
 const {SubMenu} = Menu;
 
-const removeStudent = (studentId, callback) => {
-    deleteStudent(studentId).then(() => {
-        successNotification("Student deleted", `Student with id ${studentId} was deleted`);
+const removeProject = (projectId, callback) => {
+    deleteProject(projectId).then(() => {
+        successNotification("Project deleted", `Project with id ${projectId} was deleted`);
         callback();
     }).catch(err => {
         err.response.json().then(res => {
@@ -43,56 +49,153 @@ const removeStudent = (studentId, callback) => {
     })
 }
 
-const columns = fetchStudents => [
-    {
-        title: 'Id',
-        dataIndex: 'id',
-        key: 'id',
-    },
-    {
-        title: 'Name',
-        dataIndex: 'name',
-        key: 'name',
-    },
-    {
-        title: 'Email',
-        dataIndex: 'email',
-        key: 'email',
-    },
-    {
-        title: 'Gender',
-        dataIndex: 'gender',
-        key: 'gender',
-    },
-    {
-        title: 'Actions',
-        key: 'actions',
-        render: (text, student) =>
-            <Radio.Group>
-                <Popconfirm
-                    placement='topRight'
-                    title={`Are you sure to delete ${student.name}`}
-                    onConfirm={() => removeStudent(student.id, fetchStudents)}
-                    okText='Yes'
-                    cancelText='No'>
-                    <Radio.Button value="small">Delete</Radio.Button>
-                </Popconfirm>
-                <Radio.Button value="small">Edit</Radio.Button>
-            </Radio.Group>
-    }
-];
+
 const antIcon = <LoadingOutlined style={{fontSize: 24}} spin/>;
 function App() {
-    const [students, setStudents] = useState([]);
+    const [projects, setProjects] = useState([]);
     const [collapsed, setCollapsed] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [showDrawer, setShowDrawer] = useState(false);
-    const fetchStudents = () =>
-        getAllStudents()
+    const [showEditDrawer, setEditShowDrawer] = useState(false);
+    class DataTable extends React.Component {
+        state = {
+            searchText: '',
+            searchedColumn: '',
+        };
+
+        getColumnSearchProps = dataIndex => ({
+            filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+                <div style={{ padding: 8 }}>
+                    <Input
+                        ref={node => {
+                            this.searchInput = node;
+                        }}
+                        placeholder={`Search ${dataIndex}`}
+                        value={selectedKeys[0]}
+                        onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                        onPressEnter={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+                        style={{ marginBottom: 8, display: 'block' }}
+                    />
+                    <Space>
+                        <Button
+                            type="primary"
+                            onClick={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+                            icon={<SearchOutlined />}
+                            size="small"
+                            style={{ width: 90 }}
+                        >
+                            Search
+                        </Button>
+                        <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+                            Reset
+                        </Button>
+                        <Button
+                            type="link"
+                            size="small"
+                            onClick={() => {
+                                confirm({ closeDropdown: false });
+                                this.setState({
+                                    searchText: selectedKeys[0],
+                                    searchedColumn: dataIndex,
+                                });
+                            }}
+                        >
+                            Filter
+                        </Button>
+                    </Space>
+                </div>
+            ),
+            filterIcon: filtered => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+            onFilter: (value, record) =>
+                record[dataIndex]
+                    ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+                    : '',
+            onFilterDropdownVisibleChange: visible => {
+                if (visible) {
+                    setTimeout(() => this.searchInput.select(), 100);
+                }
+            },
+            render: text =>
+                this.state.searchedColumn === dataIndex ? (
+                    <Highlighter
+                        highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                        searchWords={[this.state.searchText]}
+                        autoEscape
+                        textToHighlight={text ? text.toString() : ''}
+                    />
+                ) : (
+                    text
+                ),
+        });
+
+        handleSearch = (selectedKeys, confirm, dataIndex) => {
+            confirm();
+            this.setState({
+                searchText: selectedKeys[0],
+                searchedColumn: dataIndex,
+            });
+        };
+
+        handleReset = clearFilters => {
+            clearFilters();
+            this.setState({ searchText: '' });
+        };
+
+        render() {
+            const columns = (fetchProjects, showEditDrawer, setEditShowDrawer )=> [
+                {
+                    title: 'Id',
+                    dataIndex: 'id',
+                    key: 'id',
+                    ...this.getColumnSearchProps('id')
+                },
+                {
+                    title: 'Name',
+                    dataIndex: 'name',
+                    key: 'name',
+                    ...this.getColumnSearchProps('name')
+                },
+                {
+                    title: 'ProjectNo',
+                    dataIndex: 'projectNo',
+                    key: 'projectNo',
+                    ...this.getColumnSearchProps('projectNo')
+                },
+                {
+                    title: 'ProjectCode',
+                    dataIndex: 'projectCode',
+                    key: 'projectCode',
+                    ...this.getColumnSearchProps('projectCode')
+                },
+                {
+                    title: 'Actions',
+                    key: 'actions',
+                    render: (text, project) =>
+                        <Radio.Group>
+                            <Popconfirm
+                                placement='topRight'
+                                title={`Are you sure to delete ${project.name}`}
+                                onConfirm={() => removeProject(project.id, fetchProjects)}
+                                okText='Yes'
+                                cancelText='No'>
+                                <Radio.Button value="small">Delete</Radio.Button>
+                            </Popconfirm>
+                            <Radio.Button
+                                onClick={() => setEditShowDrawer(true)}
+                                value="small">Edit
+                            </Radio.Button>
+                        </Radio.Group>
+                }
+            ];
+            return <Table columns={columns(fetchProjects, showEditDrawer, setEditShowDrawer)} dataSource={projects} />;
+        }
+    }
+    const fetchProjects = () =>
+        getAllProjects()
             .then(res => res.json())
             .then(data => {
                 console.log(data);
-                setStudents(data);
+                setProjects(data);
             }).catch(err => {
             console.log(err.response)
             err.response.json().then(res => {
@@ -106,54 +209,51 @@ function App() {
 
     useEffect(() => {
         console.log("component is mounted");
-        fetchStudents();
+        fetchProjects();
     }, []);
 
-    const renderStudents = () => {
+    const renderProjects = () => {
         if (fetching) {
             return <Spin indicator={antIcon}/>
         }
-        if (students.length <= 0) {
+        if (projects.length <= 0) {
             return <>
                 <Button
                     onClick={() => setShowDrawer(!showDrawer)}
                     type="primary" shape="round" icon={<PlusOutlined/>} size="small">
-                    Add New Student
+                    Add New Project
                 </Button>
-                <StudentDrawerForm
+                <ProjectDrawerForm
                     showDrawer={showDrawer}
                     setShowDrawer={setShowDrawer}
-                    fetchStudents={fetchStudents}
+                    fetchProjects={fetchProjects}
                 />
                 <Empty/>
             </>
         }
         return <>
-            <StudentDrawerForm
+
+            <ProjectDrawerForm
                 showDrawer={showDrawer}
                 setShowDrawer={setShowDrawer}
-                fetchStudents={fetchStudents}
+                fetchProjects={fetchProjects}
             />
-            <Table
-                dataSource={students}
-                columns={columns(fetchStudents)}
-                bordered
-                title={() =>
-                    <>
-                        <Tag>Number of students</Tag>
-                        <Badge count={students.length} className="site-badge-count-4"/>
-                        <br/><br/>
-                        <Button
-                            onClick={() => setShowDrawer(!showDrawer)}
-                            type="primary" shape="round" icon={<PlusOutlined/>} size="small">
-                            Add New Student
-                        </Button>
-                    </>
-                }
-                pagination={{pageSize: 50}}
-                scroll={{y: 500}}
-                rowKey={student => student.id}
+            <ProjectEditDrawerForm
+                showEditDrawer={showEditDrawer}
+                setEditShowDrawer={setEditShowDrawer}
+                fetchProjects={fetchProjects}
             />
+            <>
+                <Tag>Number of projects</Tag>
+                <Badge count={projects.length} className="site-badge-count-4"/>
+                <br/><br/>
+                <Button
+                    onClick={() => setShowDrawer(!showDrawer)}
+                    type="primary" shape="round" icon={<PlusOutlined/>} size="small">
+                    Add New Project
+                </Button>
+            </>
+            <DataTable />
         </>
     }
     return <Layout style={{minHeight: '100vh'}}>
@@ -189,7 +289,7 @@ function App() {
                     <Breadcrumb.Item>Bill</Breadcrumb.Item>
                 </Breadcrumb>
                 <div className="site-layout-background" style={{padding: 24, minHeight: 360}}>
-                    {renderStudents()}
+                    {renderProjects()}
                 </div>
             </Content>
             <Footer style={{textAlign: 'center'}}>PERITUS-ACT 2021</Footer>
